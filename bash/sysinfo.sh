@@ -1,21 +1,30 @@
 #!/bin/bash
 
-#Get Fully-qualified domain name by using hostname command
+#Get hostname and fully qualified domain name
+hostname=$(hostname)
 fqdn=$(hostname -f)
-echo "FQDN: $fqdn"
 
-#OS name and version by using hostnamectl command
-info=$(hostnamectl)
-echo "OS info: $info"
+#Get operating system name and version
+os=$(lsb_release -d | awk -F"\t" '{print $2}')
 
-#IP Addresses excluding ones that start with 127
-ipadd=$(hostname -I | awk '!/^127/ {print}')
-echo "IP addresses: $ipadd"
+#Get default IP address 
+ip_address=$(ip route get 8.8.8.8 | grep -oP 'src \K\S+')
 
-#Root Filesystem Space availability
-rfs=$(df -h)
-echo "Root Filesystem Space: $rfs"
+#Get free disk space on root filesystem
+disk_space=$(df -h | grep "/s")
 
-exit
+#Output Report
+cat <<EOF
 
+Report for $hostname
 
+================================================
+
+Fully Qualified Domain Name:$fqdn
+Operating System:$os
+IP Address:$ip_address
+Free Disk Space on Root Filesystem:$disk_space
+
+====================================================
+
+EOF
