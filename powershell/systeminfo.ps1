@@ -65,6 +65,35 @@ Write-Host "Total RAM Installed: $totalRAM GB"
 Write-Host "`nSummary of Physical Disk Drives and Logical Disks:"
 $diskInfo | Format-Table -Property Vendor, Model, Size, Drive, "Free Space(GB)", "Size(GB)", "Free Space(%)"
 
+# Function to retrieve network adapter configuration
+Function Get-NetworkAdapterInfo {
+    $networkAdapters = Get-CimInstance -ClassName win32_networkadapterconfiguration
+    $networkAdapterInfo = @()
+    foreach ($networkAdapter in $networkAdapters) {
+        $ipAddress = $networkAdapter.IPAddress -join ", "
+        $subnetMask = $networkAdapter.IPSubnet -join ", "
+        $defaultGateway = $networkAdapter.DefaultIPGateway -join ", "
+        $dnsServers = $networkAdapter.DNSServerSearchOrder -join ", "
+        
+        $networkAdapterInfo += [PSCustomObject]@{
+            AdapterName = $networkAdapter.Description
+            IPAddress = if ($ipAddress) { $ipAddress } else { "N/A" }
+            SubnetMask = if ($subnetMask) { $subnetMask } else { "N/A" }
+            DefaultGateway = if ($defaultGateway) { $defaultGateway } else { "N/A" }
+            DNSServers = if ($dnsServers) { $dnsServers } else { "N/A" }
+        }
+    }
+    return $networkAdapterInfo
+}
+
+# Call the function to get network adapter configuration
+$networkAdapterInfo = Get-NetworkAdapterInfo
+
+# Output the network adapter configuration in table format
+Write-Host "Network Adapter Configuration"
+Write-Host "----------------------------"
+$networkAdapterInfo | Format-Table -Property AdapterName, IPAddress, SubnetMask, DefaultGateway, DNSServers
+
 # Function to retrieve video card information
 Function Get-VideoCardInfo {
     $videoControllers = Get-CimInstance -ClassName win32_videocontroller
